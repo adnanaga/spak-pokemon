@@ -94,7 +94,7 @@ let bgMusic;
 function preload() {
     this.load.image('background', 'https://your-hosting-url.com/assets/background.png');
     this.load.spritesheet('movement', 'https://your-hosting-url.com/assets/movement.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('npc', 'https://your-hosting-url.com/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
+    this.load.spritesheet('npc', 'https://github.com/adnanaga/spak-pokemon/blob/main/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
     this.load.audio('bgMusic', 'https://your-hosting-url.com/assets/music.mp3');
 }
 
