@@ -1,0 +1,26 @@
+{
+    "npc1": {
+        "greeting": "Yooooo what's up Taylor, It's me Adnan!\nPress SPACE to continue.",
+        "chat": [
+            "I'm one of the co-founders of SPAK!",
+            "I'm thinking we put some shit on that table over there.",
+            "How about we brainstorm some fun project ideas together?"
+        ]
+    },
+    "npc2": {
+        "greeting": "Hey Taylor, it's me Taylor.\nPress SPACE to continue.",
+        "chat": [
+            "I'm always ready to think up creative ideas!",
+            "Did you know I can be in two places at once? Like right now, I'm talking to myself!",
+            "Isn't this a cool idea."
+        ]
+    },
+    "tableObject": {
+        "greeting": "The Fairweather Hat!",
+        "chat": [
+            "Leading up to the final games of the World Series...",
+            "We teamed up with Pablo Rochat and Brian Moore...",
+            "to build a cap that helps you root for the winning team - whichever that may be."
+        ]
+    }
+}
