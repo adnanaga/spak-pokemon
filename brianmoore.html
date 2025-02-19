@@ -116,12 +116,11 @@ canvas {
     
     class Main extends Phaser.Scene {
         preload() {
-            this.load.image('background', 'assets/background.png');
+            this.load.image('background', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/background.png');
             this.load.spritesheet('movement', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/movement.png', { frameWidth: 16, frameHeight: 16 });
             this.load.spritesheet('npc', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
-            this.load.spritesheet('penguin', 'assets/penguin.png', { frameWidth:512, frameHeight: 512 });
+            this.load.spritesheet('penguin', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/penguin.png', { frameWidth:512, frameHeight: 512 });
             this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
-            this.load.audio('briancenter', 'assets/briancenter.mp3');
     
             
             url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js';
@@ -604,12 +603,11 @@ canvas {
     
         preload () {
     
-            this.load.image('snakeBackground', 'assets/snakeBackground.png');
+            this.load.image('snakeBackground', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snakeBackground.png');
     
-            this.load.image('food', 'assets/nike.png');
-            this.load.image('spakLogo', 'assets/exclamation.png'); // Full SPAK logo
-            this.load.image('logo', 'assets/exclamation.png');   // Exclamation mark
-            
+            this.load.image('food', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/brands/nike.png');
+            this.load.image('spakLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png'); // Full SPAK logo
+            this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png');   // Exclamation mark
         }
     
         create() {
@@ -1035,8 +1033,8 @@ canvas {
     
         preload() {
             // Load the new background and music
-            this.load.image('clinic', 'assets/clinic.png');
-            this.load.audio('briancenter', 'assets/briancenter.mp3');
+            this.load.image('clinic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/clinic.png');
+            this.load.audio('clinicSound', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/briancenter.mp3');
         }
     
         create() {
@@ -1050,7 +1048,7 @@ canvas {
             // Delay the music start by 2 seconds
             this.time.delayedCall(2000, () => {
                 // Play the new background music after the delay
-                this.bgMusic = this.sound.add('briancenter', {
+                this.bgMusic = this.sound.add('clinicSound', {
                     volume: 1,
                     loop: false // Don't loop the music
                 });
@@ -1118,7 +1116,7 @@ canvas {
             scale: {
                 parent: 'parent',
                 mode: Phaser.Scale.FIT,
-                autoCenter:Phaser.Scale.CENTER_BOTH
+                autoCenter: Phaser.Scale.CENTER_BOTH,
             },
         };
      }
