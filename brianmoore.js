@@ -566,7 +566,7 @@ class Snake extends Phaser.Scene {
 
         this.load.image('snakeBackground', 'assets/snakeBackground.png');
 
-        this.load.image('food', 'assets/nike.png');
+        this.load.image('food', 'assets/brands/nike.png');
         this.load.image('spakLogo', 'assets/exclamation.png'); // Full SPAK logo
         this.load.image('logo', 'assets/exclamation.png');   // Exclamation mark
         
