@@ -1,25 +1,30 @@
 // First, add the dialogue data as a constant
 const DIALOGUE_DATA = {
     "npc1": {
-        "greeting": "Yooooo what's up Taylor, it's me Adnan!!",
+        "greeting": "Hey Brian! How's it going!",
         "chat": [
-            "I'm thinking we put some shit on that table over there...Maybe some old projects",
-            "I haven't blinked in 4 hours."
+            "I'm doing great thanks!\nI wouldn't talk to Taylor though",
+            "he ate too much dairy so he's in a bad MOO'd",
+            "get it..."
         ]
     },
     "npc2": {
-        "greeting": "Hey Taylor, it's me...also Taylor.",
+        "greeting": "BRIAN NUMBER #1678B",
         "chat": [
-            "You're playing as our potential client.",
-            "It's fun to play with yourself!"
+            "Don’t talk to me.",
+            "I swear to god I’ve had a long day and I’ve got a short fuse",
+            "LEAVE… ME… ALONE… or I’ll…. I’ll…",
+            "This is your last warning. I don’t want to do this.",
+            "fine! WELL, REMEMBER YOU DID THIS TO YOURSELF!",
+            "BRIAN #1678B, YOUR MISBEHAVIOR HAS GONE ON TOO LONG.",
+            "YOU ARE MANDATED TO REPORT TO THE BRIAN CENTER FOR RETRAINING."
         ]
     },
     "tableObject": {
         "greeting": "The Fairweather Hat!",
         "chat": [
             "Leading up to the final games of the World Series of baseball, we teamed up with...",
-            "Pablo Rochat and Brian Moore to build a cap that helps you root for the winning team...",
-            "whichever that may be."
+            "oh hey we made this with you!!!",
         ]
     }
 };
@@ -66,6 +71,9 @@ var DOWN = 1;
 var LEFT = 2;
 var RIGHT = 3;
 
+// Add a flag to track if npc2's dialogue is complete
+let npc2DialogComplete = false;
+
 class Main extends Phaser.Scene {
     preload() {
         this.load.image('background', 'assets/background.png');
@@ -73,7 +81,9 @@ class Main extends Phaser.Scene {
         this.load.spritesheet('npc', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
         this.load.spritesheet('penguin', 'assets/penguin.png', { frameWidth:512, frameHeight: 512 });
         this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
-      
+        this.load.audio('briancenter', 'assets/briancenter.mp3');
+
+        
         url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js';
         this.load.plugin('rexvirtualjoystickplugin', url, true);
     
@@ -82,9 +92,9 @@ class Main extends Phaser.Scene {
     }
     
     create() {
-        // Add background
-        let bg = this.add.image(0, 0, 'background').setOrigin(0, 0);
-        bg.setScale(4);
+
+        this.bg = this.add.image(0, 0, 'background').setOrigin(0, 0);
+        this.bg.setScale(4);
     
         // Create player sprite and enable physics
         player = this.physics.add.sprite(config.width / 2, config.height / 2, 'movement');
@@ -481,7 +491,7 @@ class Main extends Phaser.Scene {
         }
     
         const npcDialogue = dialogueData[currentNPC].chat;
-        
+    
         if (currentDialogueIndex < npcDialogue.length) {
             // Show next dialogue line
             targetDialogue = npcDialogue[currentDialogueIndex];
@@ -492,11 +502,29 @@ class Main extends Phaser.Scene {
         } else {
             // End of dialogue
             this.hideDialogue();
-            currentNPC = null;
+            console.log(currentNPC);
+            this.sound.stopAll();
+            // Check if the player finished talking to npc2
+            if (currentNPC === "npc2"  && !npc2DialogComplete) {
+                // Switch to the new scene
+                 // Mark npc2's dialogue as complete
+                npc2DialogComplete = true;
+
+                // Change npc2's dialogue data after completion
+                DIALOGUE_DATA["npc2"].chat = [
+                    "You’ve got some nerve coming here again.",
+                    "Fine! But don't think I won't report you if you screw up again.",
+                    "I’m watching you, Brian."
+                ];
+                this.scene.start('briancenter');  // This switches to the NewScene
+                
+            }
+    
+            currentNPC = null; // Reset currentNPC
             currentDialogueIndex = 0;
         }
     }
-    
+
     hideDialogue() {
         isDialogueActive = false;
         dialogueBox.setVisible(false);
@@ -504,7 +532,7 @@ class Main extends Phaser.Scene {
         currentDialogue = '';
         targetDialogue = '';
         charIndex = 0;
-        currentNPC = null;
+        // currentNPC = null;
         currentDialogueIndex = 0;
     }
     
@@ -959,6 +987,47 @@ class Snake extends Phaser.Scene {
     }
 }
 
+// Define the new scene
+class BrianCenter extends Phaser.Scene {
+    constructor() {
+        super({ key: 'briancenter' });
+    }
+
+    preload() {
+        // Load the new background and music
+        this.load.image('clinic', 'assets/clinic.png');
+        this.load.audio('briancenter', 'assets/briancenter.mp3');
+    }
+
+    create() {
+        // Add the background image
+        this.bg = this.add.image(0, 0, 'clinic').setOrigin(0, 0);
+        this.bg.setScale(1);
+
+        // Fade in the scene (500ms fade-in duration)
+        this.cameras.main.fadeIn(2000);
+
+        // Delay the music start by 2 seconds
+        this.time.delayedCall(2000, () => {
+            // Play the new background music after the delay
+            this.bgMusic = this.sound.add('briancenter', {
+                volume: 1,
+                loop: false // Don't loop the music
+            });
+            this.bgMusic.play();
+
+            // When the music ends, return to the main scene
+            this.bgMusic.on('complete', () => {
+                this.scene.start('main'); // Replace 'mainScene' with your actual main scene key
+            });
+        });
+    }
+
+    update() {
+        // You can add any additional logic to update the scene
+    }
+}
+
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 if (isMobile) {
     // Then add your main.js code, but modify the dialogue loading to use the constant
@@ -996,7 +1065,8 @@ if (isMobile) {
         pixelArt: true,
         scene: [
             new Main("main"),
-            new Snake("snake")],
+            new Snake("snake"),
+            new BrianCenter("briancenter")],
             //     scene: [
             // new Snake("snake")],
         physics: {

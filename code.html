@@ -6,67 +6,118 @@
     <title>SPAK! - Taylor's Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
     <style>
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-        }
-        canvas { 
-            display: block; 
-        }
-    </style>
+body { 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color:white !important;
+}
+
+canvas {
+    display: flex;
+}
+
+#parent {
+    justify-content: center;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+}
+
+/* Show controls only on mobile */
+@media (max-width: 768px), (orientation: portrait) {
+    canvas {
+        top: 90px;
+        width: 100%;
+    }
+
+}
+</style>
 </head>
 <body>
+<div id="parent"></div>
+
 <script>
 // First, add the dialogue data as a constant
 const DIALOGUE_DATA = {
     "npc1": {
-        "greeting": "Yooooo what's up Taylor, It's me Adnan!\nPress SPACE to continue.",
+        "greeting": "Yooooo what's up Taylor, it's me Adnan!!",
         "chat": [
-            "I'm one of the co-founders of SPAK!",
-            "I'm thinking we put some shit on that table over there.",
-            "How about we brainstorm some fun project ideas together?"
+            "I'm thinking we put some shit on that table over there...Maybe some old projects",
+            "I haven't blinked in 4 hours."
         ]
     },
     "npc2": {
-        "greeting": "Hey Taylor, it's me Taylor.\nPress SPACE to continue.",
+        "greeting": "Hey Taylor, it's me...also Taylor.",
         "chat": [
-            "I'm always ready to think up creative ideas!",
-            "Did you know I can be in two places at once? Like right now, I'm talking to myself!",
-            "Isn't this a cool idea."
+            "You're playing as our potential client.",
+            "It's fun to play with yourself!"
         ]
     },
     "tableObject": {
         "greeting": "The Fairweather Hat!",
         "chat": [
-            "Leading up to the final games of the World Series...",
-            "We teamed up with Pablo Rochat and Brian Moore...",
-            "to build a cap that helps you root for the winning team - whichever that may be."
+            "Leading up to the final games of the World Series of baseball, we teamed up with...",
+            "Pablo Rochat and Brian Moore to build a cap that helps you root for the winning team...",
+            "whichever that may be."
         ]
     }
 };
 
-// Then add your main.js code, but modify the dialogue loading to use the constant
-const config = {
-    type: Phaser.AUTO,
-    width: 576,
-    height: 520,
-    pixelArt: true,
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    },
-    physics: {
-        default: 'arcade',
-        arcade: {
-            debug: false
-        }
-    }
-};
+let config;
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (isMobile) {
+    // Then add your main.js code, but modify the dialogue loading to use the constant
+    config = {
+        type: Phaser.AUTO,
+        width: 576,
+        height: 800,
+        pixelArt: true,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                debug: true
+            }
+        },
+        scale: {
+            parent: 'parent',
+            mode: Phaser.Scale.FIT,
+            autoCenter:Phaser.Scale.CENTER_HORIZONTALLY
+        },
+    };
+}
+
+ else {
+    config = {
+        type: Phaser.AUTO,
+        width: 576,
+        height: 520,
+        pixelArt: true,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                debug: true
+            }
+        },
+        scale: {
+            parent: 'parent',
+            mode: Phaser.Scale.FIT,
+            autoCenter:Phaser.Scale.CENTER_BOTH
+        },
+    };
+ }
 
 const game = new Phaser.Game(config);
 let player;
@@ -90,12 +141,29 @@ let currentNPC = null;
 let currentDialogueIndex = 0;
 let bgMusic;
 
+let url;
+let url2;
+let joystick;
+let button;
+
+let buttonPressed;
+
 
 function preload() {
-    this.load.image('background', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/background.png');
+    this.load.image('background', 'assets/background.png');
     this.load.spritesheet('movement', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/movement.png', { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('npc', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
-    this.load.audio('bgMusic', 'https://your-hosting-url.com/assets/music.mp3');
+    this.load.spritesheet('penguin', 'assets/penguin.png', { frameWidth:77, frameHeight: 82 });
+    this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
+
+    var url;
+    var url2;
+  
+  url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js';
+  this.load.plugin('rexvirtualjoystickplugin', url, true);
+
+  url2 = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexbuttonplugin.min.js';
+  this.load.plugin('rexbuttonplugin', url2, true);
 }
 
 function create() {
@@ -161,6 +229,24 @@ function create() {
         frameRate: 10,
         repeat: -1
     });
+
+    this.anims.create({
+        key: 'penguin-walk',
+        frames: this.anims.generateFrameNumbers('penguin', { start: 0, end: 8 }),
+        frameRate: 10,
+        repeat: -1,
+        hideOnComplete:true,
+    });
+
+    this.anims.create({
+        key: 'penguin-idle',
+        frames: this.anims.generateFrameNumbers('penguin', { start: 9, end: 17 }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    penguin = this.physics.add.sprite(500, 100, 'penguin');
+    penguin.setScale(1);  // Adjust scale as needed
 
     // Create boundary walls using rectangles
     let wallTop = this.add.rectangle(288, 10, 576, 20, 0x000000, 0);
@@ -256,10 +342,10 @@ function create() {
     dialogueBox.setVisible(false);  // Hide initially
 
     // Create dialogue text
-    dialogueText = this.add.text(60, 430, '', {
-        font: '22px Helvetica',
+    dialogueText = this.add.text(65, 430, '', {
+        font: '21px Helvetica',
         fill: '#000000',  // Black text
-        wordWrap: { width: 460 }
+        wordWrap: { width: 440 }
     });
 
     dialogueText.setScrollFactor(0);  // Fix to camera
@@ -273,76 +359,134 @@ function create() {
 
     // Add this inside the create function
     bgMusic = this.sound.add('bgMusic', {
-        volume: 0.5,
+        volume: 0.1,
         loop: true
     });
     bgMusic.play();
 
     const muteKey = this.input.keyboard.addKey('M');
-muteKey.on('down', function() {
+    muteKey.on('down', function() {
     if (bgMusic.isPlaying) {
         bgMusic.pause();
     } else {
         bgMusic.resume();
     }
 });
+
+if (this.sys.game.device.os.android || this.sys.game.device.os.iOS) {
+    const margin = 40;
+    const buttonSize = 50;
+    const joystickRadius = 100;
+
+    // Joystick (bottom-left with fixed margin)
+    joystick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
+        x: joystickRadius + margin,
+        y: config.height - joystickRadius - margin,
+        radius: joystickRadius,
+        base: this.add.circle(0, 0, joystickRadius, 0x888888),
+        thumb: this.add.circle(0, 0, joystickRadius / 2, 0xcccccc),
+    });
+
+    // Button (bottom-right with fixed margin)
+    button = this.add.circle(
+        config.width - buttonSize - joystickRadius/2 - margin,
+        config.height - joystickRadius - margin,
+        buttonSize,
+        0xff0000
+    )
+    .setInteractive()
+    .on('pointerdown', () => {
+        button.setFillStyle(0x880000);
+        buttonPressed = true;
+    })
+    .on('pointerup', () => {
+        button.setFillStyle(0xff0000);
+        buttonPressed = false;
+    })
+    .on('pointerout', () => {
+        button.setFillStyle(0xff0000);
+        buttonPressed = false;
+    });
+    }
+
+        // Merge joystick directions into `cursors`
+    if (joystick) {
+        const joyCursors = joystick.createCursorKeys();
+        cursors = {
+            up: joyCursors.up || cursors.up,
+            down: joyCursors.down || cursors.down,
+            left: joyCursors.left || cursors.left,
+            right: joyCursors.right || cursors.right
+        };
+            
+    }
+}
+
+// Function to handle space key action
+function handleSpaceKeyAction() {
+    // Your existing logic for starting dialogue or other actions
+    if (canInteractWithNPC(player, npc1)) {
+        startDialogue('npc1');
+    } else if (canInteractWithNPC(player, npc2)) {
+        startDialogue('npc2');
+    } else if (tableObject && canInteractWithNPC(player, tableObject)) {
+        startDialogue('tableObject');
+    }
 }
 
 function update(time, delta) {
     if (!isDialogueActive) {
-        const speed = 175;
         const prevVelocity = player.body.velocity.clone();
         
         // Stop any previous movement from the last frame
         player.body.setVelocity(0);
-        
-        // Horizontal movement
-        if (cursors.left.isDown) {
-            player.body.setVelocityX(-speed);
-        } else if (cursors.right.isDown) {
-            player.body.setVelocityX(speed);
-        }
-        
-        // Vertical movement
-        if (cursors.up.isDown) {
-            player.body.setVelocityY(-speed);
-        } else if (cursors.down.isDown) {
-            player.body.setVelocityY(speed);
-        }
-        
-        // Normalize and scale the velocity so that player can't move faster along a diagonal
-        player.body.velocity.normalize().scale(speed);
 
-        // Check for NPC interactions
-        if (Phaser.Input.Keyboard.JustDown(spaceKey)) {
-            console.log(tableObject)
-            if (canInteractWithNPC(player, npc1)) {
-                startDialogue('npc1');
-            } else if (canInteractWithNPC(player, npc2)) {
-                startDialogue('npc2');
-            } else if (tableObject && canInteractWithNPC(player, tableObject)) {
-                startDialogue('tableObject');
-            }
+    // Store movement inputs from joystick and cursors
+    const leftKeyDown = cursors.left && cursors.left.isDown;
+    const rightKeyDown = cursors.right && cursors.right.isDown;
+    const upKeyDown = cursors.up && cursors.up.isDown;
+    const downKeyDown = cursors.down && cursors.down.isDown;
+
+    const speed = 150;
+    player.setVelocity(0);
+
+    // Handle movement with priority for left/right animations
+    if (leftKeyDown || cursors.left.isDown) {
+        player.setVelocityX(-speed);
+        // player.anims.play('walk_left', true);
+        penguin.anims.play('penguin-walk', true);
+    } else if (rightKeyDown || cursors.right.isDown) {
+        player.setVelocityX(speed);
+        player.anims.play('walk_right', true);
+    } else if (upKeyDown || cursors.up.isDown) {
+        player.setVelocityY(-speed);
+        player.anims.play('walk_north', true);
+    } else if (downKeyDown || cursors.down.isDown) {
+        player.setVelocityY(speed);
+        player.anims.play('walk_south', true);
+    } else {
+        player.anims.stop();
+        if (prevVelocity.x < 0) player.anims.play('face_west', true);
+        else if (prevVelocity.x > 0) player.anims.play('face_east', true);
+        else if (prevVelocity.y < 0) player.anims.play('face_north', true);
+        else if (prevVelocity.y > 0) player.anims.play('face_south', true);
+    }
+
+    // Prevent faster diagonal movement
+    player.body.velocity.normalize().scale(speed);
+
+    // Mobile button and space key interaction for NPC
+    if (Phaser.Input.Keyboard.JustDown(spaceKey) || buttonPressed) {
+        if (canInteractWithNPC(player, npc1)) {
+            startDialogue('npc1');
+        } else if (canInteractWithNPC(player, npc2)) {
+            startDialogue('npc2');
+        } else if (tableObject && canInteractWithNPC(player, tableObject)) {
+            startDialogue('tableObject');
         }
-        
-        // Update the animation last and give left/right animations precedence over up/down animations
-        if (cursors.left.isDown) {
-            player.anims.play("walk_left", true);
-        } else if (cursors.right.isDown) {
-            player.anims.play("walk_right", true);
-        } else if (cursors.up.isDown) {
-            player.anims.play("walk_north", true);
-        } else if (cursors.down.isDown) {
-            player.anims.play("walk_south", true);
-        } else {
-            player.anims.stop();
-        
-            // If we were moving, pick and idle frame to use
-            if (prevVelocity.x < 0) player.anims.play("face_west", true);
-            else if (prevVelocity.x > 0) player.anims.play("face_east", true);
-            else if (prevVelocity.y < 0) player.anims.play("face_north", true);
-            else if (prevVelocity.y > 0) player.anims.play("face_south", true);
-        }
+        buttonPressed = false; // Reset mobile button state
+    }
+
     } else {
         // Stop player movement when dialogue is active
         player.anims.stop();
@@ -356,16 +500,16 @@ function update(time, delta) {
             lastCharTime = time;
         }
         
-        // Handle space press during dialogue
-        if (Phaser.Input.Keyboard.JustDown(spaceKey)) {
+        // Update loop: Handle space or button press for dialogue
+        if (Phaser.Input.Keyboard.JustDown(spaceKey) || buttonPressed) {
             if (charIndex < targetDialogue.length) {
-                // If text is still typing, show all text immediately
                 currentDialogue = targetDialogue;
                 dialogueText.setText(currentDialogue);
                 charIndex = targetDialogue.length;
             } else {
                 advanceDialogue();
             }
+            buttonPressed = false;
         }
     }
 }
