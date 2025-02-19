@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPAK! - Taylor's Edition</title>
+    <title>SPAK! - Brian's Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
     <style>
 body { 
@@ -18,7 +18,6 @@ canvas {
 }
 
 #parent {
-    justify-content: center;
     display: flex;
     width: 100%;
     height: 100%;
@@ -115,6 +114,11 @@ canvas {
     let npc2DialogComplete = false;
     
     class Main extends Phaser.Scene {
+
+        constructor() {
+            super({ key: 'main' });
+        }
+
         preload() {
             this.load.image('background', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/background.png');
             this.load.spritesheet('movement', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/movement.png', { frameWidth: 16, frameHeight: 16 });
@@ -122,12 +126,6 @@ canvas {
             this.load.spritesheet('penguin', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/penguin.png', { frameWidth:512, frameHeight: 512 });
             this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
     
-            
-            url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js';
-            this.load.plugin('rexvirtualjoystickplugin', url, true);
-        
-            url2 = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexbuttonplugin.min.js';
-            this.load.plugin('rexbuttonplugin', url2, true);
         }
         
         create() {
@@ -350,56 +348,58 @@ canvas {
             }
         });
         
-        if (this.sys.game.device.os.android || this.sys.game.device.os.iOS) {
-            const margin = 40;
-            const buttonSize = 50;
-            const joystickRadius = 100;
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
         
-            // Joystick (bottom-left with fixed margin)
-            joystick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
-                x: joystickRadius + margin,
-                y: config.height - joystickRadius - margin,
-                radius: joystickRadius,
-                base: this.add.circle(0, 0, joystickRadius, 0x888888),
-                thumb: this.add.circle(0, 0, joystickRadius / 2, 0xcccccc),
+            this.scene.launch('MobileControls'); // Ensure MobileControls is always active
+            
+            // Get a reference to MobileControls
+            this.mobileControls = this.scene.get('MobileControls');
+
+            // Wait until MobileControls is ready before using its controls
+            this.time.delayedCall(100, () => {
+                this.cursors = this.mobileControls.cursors;
+                this.button = this.mobileControls.button;
             });
-        
-            // Button (bottom-right with fixed margin)
-            button = this.add.circle(
-                config.width - buttonSize - joystickRadius/2 - margin,
-                config.height - joystickRadius - margin,
-                buttonSize,
-                0xff0000
-            )
-            .setInteractive()
-            .on('pointerdown', () => {
-                button.setFillStyle(0x880000);
-                buttonPressed = true;
-            })
-            .on('pointerup', () => {
-                button.setFillStyle(0xff0000);
-                buttonPressed = false;
-            })
-            .on('pointerout', () => {
-                button.setFillStyle(0xff0000);
-                buttonPressed = false;
-            });
-            }
-        
-                // Merge joystick directions into `cursors`
-            if (joystick) {
-                const joyCursors = joystick.createCursorKeys();
-                cursors = {
-                    up: joyCursors.up || cursors.up,
-                    down: joyCursors.down || cursors.down,
-                    left: joyCursors.left || cursors.left,
-                    right: joyCursors.right || cursors.right
-                };
-                    
-            }
         }
+
+    }
         
         update(time, delta) {
+
+            let controls;
+            let leftKeyDown;
+                let rightKeyDown;
+                let upKeyDown;
+                let downKeyDown;
+                let buttonPressed; 
+
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+                if (isMobile) {
+                    controls = this.scene.get('MobileControls');
+                if (!controls || !controls.cursors) return;
+
+                leftKeyDown = controls.cursors.left.isDown;
+                rightKeyDown = controls.cursors.right.isDown;
+                upKeyDown = controls.cursors.up.isDown;
+                downKeyDown = controls.cursors.down.isDown;
+                buttonPressed = controls.buttonPressed; 
+
+            } else {
+                leftKeyDown = cursors.left && cursors.left.isDown;
+                rightKeyDown = cursors.right && cursors.right.isDown;
+                upKeyDown = cursors.up && cursors.up.isDown;
+                downKeyDown = cursors.down && cursors.down.isDown;
+            }
+
+            // console.log('Current Scene Cursors:', {
+            //     left: leftKeyDown,
+            //     right: rightKeyDown,
+            //     up: upKeyDown,
+            //     down: downKeyDown,
+            //     button: buttonPressed
+            // });
         
             if (!isDialogueActive) {
                 const prevVelocity = player.body.velocity.clone();
@@ -407,11 +407,7 @@ canvas {
                 // Stop any previous movement from the last frame
                 player.body.setVelocity(0);
         
-            // Store movement inputs from joystick and cursors
-            const leftKeyDown = cursors.left && cursors.left.isDown;
-            const rightKeyDown = cursors.right && cursors.right.isDown;
-            const upKeyDown = cursors.up && cursors.up.isDown;
-            const downKeyDown = cursors.down && cursors.down.isDown;
+
         
             const speed = 150;
             player.setVelocity(0);
@@ -495,8 +491,8 @@ canvas {
                     lastCharTime = time;
                 }
                 
-                // Update loop: Handle space or button press for dialogue
-                if (Phaser.Input.Keyboard.JustDown(spaceKey) || buttonPressed) {
+                if ((Phaser.Input.Keyboard.JustDown(spaceKey) || (controls && controls.buttonJustPressed))) {
+                    // console.log(spaceKey);
                     if (charIndex < targetDialogue.length) {
                         currentDialogue = targetDialogue;
                         dialogueText.setText(currentDialogue);
@@ -504,7 +500,11 @@ canvas {
                     } else {
                         this.advanceDialogue();
                     }
-                    buttonPressed = false;
+
+                    if(controls){
+                        // Reset button press state after use
+                        controls.buttonJustPressed = false;
+                    }
                 }
             }
         }
@@ -541,7 +541,6 @@ canvas {
             } else {
                 // End of dialogue
                 this.hideDialogue();
-                console.log(currentNPC);
                 this.sound.stopAll();
                 // Check if the player finished talking to npc2
                 if (currentNPC === "npc2"  && !npc2DialogComplete) {
@@ -576,16 +575,15 @@ canvas {
         }
         
         canInteractWithNPC(player, object) {
-            // Get the direction vector from player to NPC
             const dx = object.x - player.x;
             const dy = object.y - player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);    
-               // Check if the object has a valid 'geom' property and 'height'
+
                if (object.geom && object.geom.height == 80) {
     
-                if(player.x > 120 && player.x < 168 && player.y > 455 && player.y <470){
+                if (player.x > 120 && player.x < 168 && player.y > 455 && player.y <470){
                     if (distance < 120) {
-                        return true;
+                            return true;
                         }
                 }
     
@@ -601,6 +599,9 @@ canvas {
     
     class Snake extends Phaser.Scene {
     
+        constructor() {
+            super({ key: 'snake' });
+        }
         preload () {
     
             this.load.image('snakeBackground', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snakeBackground.png');
@@ -613,17 +614,36 @@ canvas {
         create() {
         //     this.cameras.main.setBackgroundColor("#95C413"); // Set background color
         this.add.image(0, 0, 'snakeBackground').setOrigin(0, 0).setScale(1); // Adjust the scale if needed
-    
+            // Box dimensions (adjust as needed)
+            let boxWidth = 0;
+            let boxHeight = 0;
+            let boxX = 0;
+            let boxY = 0;
             // Create a graphics object to draw the box
             this.graphics = this.add.graphics({ lineStyle: { width: 4, color: 0x000000 } });
+
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
     
-            // Box dimensions (adjust as needed)
-            const boxWidth = 576-40;
-            const boxHeight = 520 - 110;
+                // Box dimensions (adjust as needed)
+                boxWidth = 576-40;
+                boxHeight = 370;
+
+                            // Position the box in the center of the game world
+                boxX = (this.cameras.main.width - boxWidth) / 2;
+                boxY = (this.cameras.main.height - boxHeight) / 2 - 100;
+
+            } else {
+                // Box dimensions (adjust as needed)
+                boxWidth = 576-40;
+                boxHeight = 520-110;
+
+                // Position the box in the center of the game world
+                boxX = (this.cameras.main.width - boxWidth) / 2;
+                boxY = (this.cameras.main.height - boxHeight) / 2 + 35;
+            }
     
-            // Position the box in the center of the game world
-            const boxX = (this.cameras.main.width - boxWidth) / 2;
-            const boxY = (this.cameras.main.height - boxHeight) / 2 + 35;
+
     
             // Draw the box on the graphics object
             this.graphics.strokeRect(boxX, boxY, boxWidth, boxHeight);
@@ -802,7 +822,7 @@ canvas {
     
                         // Check for collisions with the grid boundary (ensures snake dies if out of bounds)
         if (this.headPosition.x <= 1 || this.headPosition.x >= GRID_WIDTH-1 || this.headPosition.y <= 5 || this.headPosition.y >= GRID_HEIGHT-1) {
-            console.log('dead: out of bounds');
+            // console.log('dead: out of bounds');
             this.alive = false;
     
                     // Manually clear the body group
@@ -814,7 +834,7 @@ canvas {
                         this.head.destroy();  // Destroy the head object
                     }
     
-                    console.log(this.body.getChildren()); // Check the body parts in the group
+                    // console.log(this.body.getChildren()); // Check the body parts in the group
     
             // If you have a food object, destroy it here as well
             if (this.food) {
@@ -865,7 +885,7 @@ canvas {
     
                     if (hitBody)
                     {
-                        console.log('dead');
+                        // console.log('dead');
     
                         this.alive = false;
     
@@ -889,37 +909,37 @@ canvas {
                     // Adjust the hitbox size based on the scale
                     newPart.setSize(newPart.width * newPart.scaleX, newPart.height * newPart.scaleY);
                     this.score += 1;
-                    console.log(this.score)
+                    // console.log(this.score)
                     // Update the score text to reflect the new score
                     this.scoreText.setText(`${this.score}`);
                 },
     
                 collideWithFood: function (food)
-    {
-        // Create rectangles for the snake head and the food based on their positions and sizes
-        let headBounds = new Phaser.Geom.Rectangle(this.head.x, this.head.y, this.head.width * this.head.scaleX, this.head.height * this.head.scaleY);
-        let foodBounds = new Phaser.Geom.Rectangle(food.x, food.y, food.width * food.scaleX, food.height * food.scaleY);
-    
-        // Check for overlap between the snake's head and the food's hitbox
-        if (Phaser.Geom.Rectangle.Overlaps(headBounds, foodBounds))
-        {
-            this.grow();
-    
-            food.eat();
-    
-            // For every 5 items of food eaten, we'll increase the snake speed a little
-            if (this.speed > 20 && food.total % 5 === 0)
-            {
-                this.speed -= 5;
-            }
-    
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    },
+                {
+                    // Create rectangles for the snake head and the food based on their positions and sizes
+                    let headBounds = new Phaser.Geom.Rectangle(this.head.x, this.head.y, this.head.width * this.head.scaleX, this.head.height * this.head.scaleY);
+                    let foodBounds = new Phaser.Geom.Rectangle(food.x, food.y, food.width * food.scaleX, food.height * food.scaleY);
+                
+                    // Check for overlap between the snake's head and the food's hitbox
+                    if (Phaser.Geom.Rectangle.Overlaps(headBounds, foodBounds))
+                    {
+                        this.grow();
+                
+                        food.eat();
+                
+                        // For every 5 items of food eaten, we'll increase the snake speed a little
+                        if (this.speed > 20 && food.total % 5 === 0)
+                        {
+                            this.speed -= 5;
+                        }
+                
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                },
     
                 updateGrid: function (grid)
                 {
@@ -937,16 +957,58 @@ canvas {
                 }
     
             });
+
+             // Create cursor keys for movement
+             cursors = this.input.keyboard.createCursorKeys();
     
             food = new Food(this, 3, 4);
     
             snake = new Snake(this, 8, 8, this.scoreText, food);
-    
-            //  Create our keyboard controls
-            cursors = this.input.keyboard.createCursorKeys();
+
+            if (isMobile) {
+
+                this.scene.launch('MobileControls'); // Ensure MobileControls is always active
+            
+                // Get a reference to MobileControls
+                this.mobileControls = this.scene.get('MobileControls');
+
+                // Wait until MobileControls is ready before using its controls
+                this.time.delayedCall(100, () => {
+                    this.cursors = this.mobileControls.cursors;
+                    this.button = this.mobileControls.button;
+                });
+            }
         }
     
         update (time, delta) {
+
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                let leftKeyDown;
+                let rightKeyDown;
+                let upKeyDown;
+                let downKeyDown;
+                let buttonPressed;     
+            
+            if (isMobile) {
+                const controls = this.scene.get('MobileControls');
+                if (!controls || !controls.cursors) return;
+
+                leftKeyDown = controls.cursors.left.isDown;
+                rightKeyDown = controls.cursors.right.isDown;
+                upKeyDown = controls.cursors.up.isDown;
+                downKeyDown = controls.cursors.down.isDown;
+                buttonPressed = controls.buttonPressed; 
+
+                // console.log('Current Scene Cursors:', {
+                //     left: leftKeyDown,
+                //     right: rightKeyDown,
+                //     up: upKeyDown,
+                //     down: downKeyDown,
+                //     button: buttonPressed
+                // });
+            }
+
+
             if (!snake.alive)
             {
                 return;
@@ -959,20 +1021,16 @@ canvas {
             * the LEFT cursor, it ignores it, because the only valid directions you
             * can move in at that time is up and down.
             */
-            if (cursors.left.isDown)
-            {
+            if (leftKeyDown || cursors.left.isDown) {
                 snake.faceLeft();
             }
-            else if (cursors.right.isDown)
-            {
+            else if (rightKeyDown || cursors.right.isDown) {
                 snake.faceRight();
             }
-            else if (cursors.up.isDown)
-            {
+            else if (upKeyDown || cursors.up.isDown) {
                 snake.faceUp();
             }
-            else if (cursors.down.isDown)
-            {
+            else if ( downKeyDown || cursors.down.isDown) {
                 snake.faceDown();
             }
     
@@ -987,6 +1045,7 @@ canvas {
             }
         }
     
+
         repositionFood () {
             const GRID_WIDTH = 35;   // New width for the grid
             const GRID_HEIGHT = 27;  // New height for the grid
@@ -1025,7 +1084,6 @@ canvas {
         }
     }
     
-    // Define the new scene
     class BrianCenter extends Phaser.Scene {
         constructor() {
             super({ key: 'briancenter' });
@@ -1066,7 +1124,81 @@ canvas {
         }
     }
     
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    class MobileControls extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MobileControls', active: true });
+    }
+
+    preload() {
+        const url1 = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexvirtualjoystickplugin.min.js';
+        this.load.plugin('rexvirtualjoystickplugin', url1, true);
+        
+        const url2 = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexbuttonplugin.min.js';
+        this.load.plugin('rexbuttonplugin', url2, true);
+    }
+
+    create() {
+        if (this.sys.game.device.os.android || this.sys.game.device.os.iOS) {
+            const margin = 40;
+            const buttonSize = 50;
+            const joystickRadius = 100;
+
+            const joystickPlugin = this.plugins.get('rexvirtualjoystickplugin');
+            if (!joystickPlugin) {
+                console.error("rexVirtualJoystick plugin not found!");
+                return;
+            }
+
+            // Joystick
+            this.joystick = joystickPlugin.add(this, {
+                x: joystickRadius + margin,
+                y: this.scale.height - joystickRadius - margin,
+                radius: joystickRadius,
+                base: this.add.circle(0, 0, joystickRadius, 0x888888),
+                thumb: this.add.circle(0, 0, joystickRadius / 2, 0xcccccc),
+            });
+
+            // Virtual Button
+            this.button = this.add.circle(
+                this.scale.width - buttonSize - joystickRadius / 2 - margin,
+                this.scale.height - joystickRadius - margin,
+                buttonSize,
+                0xff0000
+            )
+                .setInteractive()
+                .on('pointerdown', () => {
+                    this.button.setFillStyle(0x880000);
+                    this.buttonPressed = true;
+                })
+                .on('pointerup', () => {
+                    this.button.setFillStyle(0xff0000);
+                    this.buttonPressed = false;
+                })
+                .on('pointerout', () => {
+                    this.button.setFillStyle(0xff0000);
+                    this.buttonPressed = false;
+                });
+
+            // Merge joystick directions into `cursors`
+            this.cursors = this.joystick.createCursorKeys();
+        }
+    }
+
+    update() {
+        // Check if button was just pressed (transition from false -> true)
+        this.buttonJustPressed = !this.buttonWasPressed && this.buttonPressed;
+        this.buttonWasPressed = this.buttonPressed; // Track last state
+    }
+
+    getControls() {
+        return {
+            cursors: this.cursors,
+            button: this.button
+        };
+    }
+}
+    
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
         // Then add your main.js code, but modify the dialogue loading to use the constant
         config = {
@@ -1075,15 +1207,11 @@ canvas {
             width: 576,
             height: 800,
             pixelArt: true,
-            scene: {
-                preload: preload,
-                create: create,
-                update: update
-            },
+                scene: [Main,MobileControls, Snake, BrianCenter],
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true
+                    debug: false
                 }
             },
             scale: {
@@ -1093,7 +1221,6 @@ canvas {
             },
         };
     }
-    
      else {
         config = {
             key:"main",
@@ -1105,12 +1232,10 @@ canvas {
                 new Main("main"),
                 new Snake("snake"),
                 new BrianCenter("briancenter")],
-                //     scene: [
-                // new Snake("snake")],
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true
+                    debug: false
                 }
             },
             scale: {
