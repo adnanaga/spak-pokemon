@@ -151,12 +151,12 @@ canvas {
             this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
 
             //load brand logo
-            this.load.image('brainLogo', 'assets/brands/brain.png');
+            this.load.image('brainLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/brands/brain.png');
 
             // Load images for hat, aerogel, and IOU
-            this.load.image('hat', 'assets/objects/hat.png');
-            this.load.image('aerogel', 'assets/objects/aerogel.png');
-            this.load.image('IOU', 'assets/objects/IOU.png');
+            this.load.image('hat', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/objects/hat.png');
+            this.load.image('aerogel', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/objects/aerogel.png');
+            this.load.image('IOU', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/objects/IOU.png');
         }
         
         create() {
@@ -688,11 +688,11 @@ canvas {
         }
         preload () {
     
-            this.load.image('snakeBackground', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snakeBackground.png');
+            this.load.image('snakeBackground', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/snake/snakeBackground.png');
     
-            this.load.image('food', 'assets/brands/brain.png');
-            this.load.image('spakLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png'); // Full SPAK logo
-            this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png');   // Exclamation mark
+            this.load.image('food', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/brands/brain.png');
+            this.load.image('spakLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/snake/exclamation.png'); // Full SPAK logo
+            this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snake/exclamation.png');   // Exclamation mark
         }
     
         create() {
@@ -1341,7 +1341,7 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: true
+                    debug: false
                 }
             },
             scale: {
