@@ -59,11 +59,25 @@ canvas {
                 "YOU ARE MANDATED TO REPORT TO THE BRIAN CENTER FOR RETRAINING."
             ]
         },
-        "tableObject": {
-            "greeting": "The Fairweather Hat!",
+        "hat": {
+            "greeting": "The fairweather hat!",
             "chat": [
-                "Leading up to the final games of the World Series of baseball, we teamed up with...",
-                "oh hey we made this with you!!!",
+                "This hat allows you to...",
+                "Oh wait! We made this with you!"
+            ]
+        },
+        "aerogel": {
+            "greeting": "You found a piece of aerogel!",
+            "chat": [
+                "It's one of the lightest objects...in the world!",
+                "want a piece?? get in touch!",
+            ]
+        },
+        "IOU": {
+            "greeting": "It's an IOU!",
+            "chat": [
+                "This IOU can be redeemed for 1 karaoke song at the time and location of your choosin!",
+                "Adnan likes Panic! at the Disco and Taylor likes Bjork."
             ]
         }
     };
@@ -72,9 +86,17 @@ canvas {
     let cursors;
     let spaceKey;
     let npc1, npc2;
-    let tableObject;
     let arcade;
     let puffle;
+
+    // table objects
+    // Aerogel, hat IOU
+
+    let aerogel;
+    let hat;
+    let IOU;
+
+    let computer;
     
     let dialogueBox;
     let dialogueText;
@@ -91,6 +113,8 @@ canvas {
     let currentNPC = null;
     let currentDialogueIndex = 0;
     let bgMusic;
+
+    let canStartDialogue = true;
     
     let isInteractingWithPuffle = false;
     
@@ -125,13 +149,23 @@ canvas {
             this.load.spritesheet('npc', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/npc.png', { frameWidth: 16, frameHeight: 16 });
             this.load.spritesheet('penguin', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/penguin.png', { frameWidth:512, frameHeight: 512 });
             this.load.audio('bgMusic', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/music.mp3');
-    
+
+            //load brand logo
+            this.load.image('brainLogo', 'assets/brands/brain.png');
+
+            // Load images for hat, aerogel, and IOU
+            this.load.image('hat', 'assets/objects/hat.png');
+            this.load.image('aerogel', 'assets/objects/aerogel.png');
+            this.load.image('IOU', 'assets/objects/IOU.png');
         }
         
         create() {
     
             this.bg = this.add.image(0, 0, 'background').setOrigin(0, 0);
             this.bg.setScale(4);
+
+            // // Add Brand logo on left side on background
+            // this.add.image(40, 160, 'brainLogo').setOrigin(0, 0);
         
             // Create player sprite and enable physics
             player = this.physics.add.sprite(config.width / 2, config.height / 2, 'movement');
@@ -207,7 +241,7 @@ canvas {
             let wallBottom = this.add.rectangle(288, 510, 576, 20, 0x000000, 0);
             this.physics.add.existing(wallBottom, true);
         
-            let wallLeft = this.add.rectangle(10, 260, 20, 520, 0x000000, 0);
+            let wallLeft = this.add.rectangle(10, 260, 10, 520, 0x000000, 0);
             this.physics.add.existing(wallLeft, true);
         
             let wallRight = this.add.rectangle(566, 260, 20, 520, 0x000000, 0);
@@ -226,17 +260,40 @@ canvas {
             let wall4 = this.add.rectangle(348, 345, 210, 70, 0x000000, 0).setOrigin(0, 0);
             this.physics.add.existing(wall4, true);
         
-            let table = this.add.rectangle(348, 175, 170, 40, 0x000000, 0).setOrigin(0, 0);
+            let table = this.add.rectangle(345, 175, 180, 40, 0x000000, 0).setOrigin(0, 0);
             this.physics.add.existing(table, true);
-        
-            tableObject = this.add.rectangle(410, 180, 50, 50, 0x000000, 0).setOrigin(0, 0);
-            this.physics.add.existing(tableObject, true);
         
             arcade = this.add.rectangle(120, 345, 50, 80, 0x000000, 0).setOrigin(0, 0);
             this.physics.add.existing(arcade, true);
         
             puffle = this.add.rectangle(515, 465, 50, 50, 0x000000, 0).setOrigin(0, 0);
             this.physics.add.existing(puffle, true);
+
+            //add rectangle and collider for computer
+            computer = this.add.rectangle(20, 70, 40, 50, 0x000000, 0).setOrigin(0, 0);
+            this.physics.add.existing(computer, true);
+
+
+            //Add images for table objects
+            hat = this.add.image(360, 160, 'hat').setOrigin(0, 0);
+            hat.setScale(0.25)
+
+            aerogel = this.add.image(415, 165, 'aerogel').setOrigin(0, 0);
+            aerogel.setScale(0.25)
+
+
+            IOU = this.add.image(462, 170, 'IOU').setOrigin(0, 0);
+            IOU.setScale(0.1)
+
+            // add collision for table objects
+            hat = this.add.rectangle(360, 210, 50, 15, 0xFF0000, 0).setOrigin(0, 0);
+            this.physics.add.existing(hat, true);
+
+            aerogel = this.add.rectangle(413, 210, 50, 15, 0x0000FF, 0).setOrigin(0, 0);
+            this.physics.add.existing(aerogel, true);
+
+            IOU = this.add.rectangle(467, 210, 50, 15, 0x000000, 0).setOrigin(0, 0);
+            this.physics.add.existing(IOU, true);
         
             // Add colliders for the boundary walls
             this.physics.add.collider(player, wallTop);
@@ -448,16 +505,33 @@ canvas {
             player.body.velocity.normalize().scale(speed);
         
             if (Phaser.Input.Keyboard.JustDown(spaceKey) || buttonPressed) {
-        
+                console.log("Space key pressed");
                 if (this.canInteractWithNPC(player, npc1)) {
                     this.startDialogue('npc1');
                 } else if (this.canInteractWithNPC(player, npc2)) {
                     this.startDialogue('npc2');
-                } else if (tableObject && this.canInteractWithNPC(player, tableObject)) {
-                    this.startDialogue('tableObject');
-                } else if (arcade && this.canInteractWithNPC(player, arcade)) {
-                    console.log("Arcade interaction!");
-                    // Pause the Snake scene
+                } 
+                
+                // Check for collisions with table objects
+                else if (hat && this.canInteractWithNPC(player, hat)) {
+                    this.startDialogue('hat');
+                } else if (aerogel && this.canInteractWithNPC(player, aerogel)) {
+                    this.startDialogue('aerogel');
+                } else if (IOU && this.canInteractWithNPC(player, IOU)) {
+                    this.startDialogue('IOU');
+                }
+
+                //check for collision with computer
+                else if (computer && this.canInteractWithNPC(player, computer)) {
+                    console.log("computer")
+                    window.open("https://spak.studio", '_blank').focus();
+                }
+
+                // else if (tableObject && this.canInteractWithNPC(player, tableObject)) {
+                //     this.startDialogue('tableObject');
+                // } 
+                
+                else if (arcade && this.canInteractWithNPC(player, arcade)) {
                     this.scene.pause('main');
                     this.scene.launch('snake');
                 } else if (this.canInteractWithNPC(player, puffle)) {
@@ -498,6 +572,7 @@ canvas {
                         dialogueText.setText(currentDialogue);
                         charIndex = targetDialogue.length;
                     } else {
+                        console.log
                         this.advanceDialogue();
                     }
 
@@ -510,6 +585,8 @@ canvas {
         }
         
         startDialogue(npcId) {
+            if (!canStartDialogue) return;
+            console.log("starting fialogue")
             currentNPC = npcId;
             currentDialogueIndex = 0;
             isDialogueActive = true;
@@ -541,9 +618,9 @@ canvas {
             } else {
                 // End of dialogue
                 this.hideDialogue();
-                this.sound.stopAll();
                 // Check if the player finished talking to npc2
                 if (currentNPC === "npc2"  && !npc2DialogComplete) {
+                    this.sound.stopAll();
                     // Switch to the new scene
                      // Mark npc2's dialogue as complete
                     npc2DialogComplete = true;
@@ -564,6 +641,7 @@ canvas {
         }
     
         hideDialogue() {
+            console.log("Hiding dialogue");
             isDialogueActive = false;
             dialogueBox.setVisible(false);
             dialogueText.setVisible(false);
@@ -572,13 +650,19 @@ canvas {
             charIndex = 0;
             // currentNPC = null;
             currentDialogueIndex = 0;
+
+                // Disable dialogue interaction and then re-enable after a short delay (e.g., 300ms)
+    canStartDialogue = false;
+    this.time.delayedCall(300, () => {
+        canStartDialogue = true;
+    });
         }
         
         canInteractWithNPC(player, object) {
             const dx = object.x - player.x;
             const dy = object.y - player.y;
             const distance = Math.sqrt(dx * dx + dy * dy);    
-
+            console.log(distance)
                if (object.geom && object.geom.height == 80) {
     
                 if (player.x > 120 && player.x < 168 && player.y > 455 && player.y <470){
@@ -606,7 +690,7 @@ canvas {
     
             this.load.image('snakeBackground', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snakeBackground.png');
     
-            this.load.image('food', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/brands/nike.png');
+            this.load.image('food', 'assets/brands/brain.png');
             this.load.image('spakLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png'); // Full SPAK logo
             this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/exclamation.png');   // Exclamation mark
         }
@@ -614,6 +698,8 @@ canvas {
         create() {
         //     this.cameras.main.setBackgroundColor("#95C413"); // Set background color
         this.add.image(0, 0, 'snakeBackground').setOrigin(0, 0).setScale(1); // Adjust the scale if needed
+
+
             // Box dimensions (adjust as needed)
             let boxWidth = 0;
             let boxHeight = 0;
@@ -667,6 +753,26 @@ canvas {
     
             // Update the score text whenever it changes
             this.scoreText.setText(`${this.score}`);
+
+                // Add an "X" button at the top right corner
+            const exitButton = this.add.text(this.cameras.main.width - 50, 20, 'X', {
+                fontSize: '40px',
+                fill: '#ff0000',
+                fontFamily: 'Courier New',
+                fontWeight: 'bold'
+            }).setOrigin(1, 0).setInteractive();
+
+            // Add click functionality to exit Snake scene
+            exitButton.on('pointerdown', () => {
+                // Pause the Snake scene
+                this.scene.pause('snake');
+                
+                // Optionally, hide Snake scene's visuals (helps prevent it from being shown frozen)
+                this.scene.setVisible(false, 'snake');
+    
+                // Resume the Main scene
+                this.scene.resume('main');
+            });
     
             this.input.keyboard.on('keydown-ESC', () => {
                 
@@ -694,7 +800,7 @@ canvas {
                     this.setTexture('food');
                     this.setPosition(x * 32*2, y * 32*3);
                     this.setOrigin(0);
-                    this.setScale(0.1);
+                    this.setScale(0.3);
                     this.setSize(this.width, this.height);
     
                     // Create the graphics object for the hitbox
@@ -842,7 +948,7 @@ canvas {
             }
     
             // Optionally reset the score or any other game state (you can clear score text if needed)
-            this.scoreText.setText("GAME OVER :("); // Example: Updating score text on game over
+            this.scoreText.setText("GAME OVER"); // Example: Updating score text on game over
     
             return false; // Stop the movement, end the game or trigger reset
         }
@@ -1235,7 +1341,7 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             physics: {
                 default: 'arcade',
                 arcade: {
-                    debug: false
+                    debug: true
                 }
             },
             scale: {
