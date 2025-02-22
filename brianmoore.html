@@ -24,11 +24,27 @@ canvas {
     border-radius: 20px;
 }
 
+    footer.sections * {
+        font-size:60px;
+    }
+
 /* Show controls only on mobile */
 @media (max-width: 768px), (orientation: portrait) {
     canvas {
         top: 90px;
         width: 100%;
+    }
+
+    #page {
+    
+    }
+
+    footer.sections * {
+        font-size:40px;
+    }
+
+    #footer-sections {
+    margin-top: 44px !important;
     }
 
 }
@@ -60,7 +76,7 @@ canvas {
             ]
         },
         "hat": {
-            "greeting": "The fairweather hat!",
+            "greeting": "The Fairweather Hat!",
             "chat": [
                 "This hat allows you to...",
                 "Oh wait! We made this with you!"
@@ -524,7 +540,7 @@ canvas {
                 //check for collision with computer
                 else if (computer && this.canInteractWithNPC(player, computer)) {
                     console.log("computer")
-                    window.open("https://spak.studio", '_blank').focus();
+                    // window.open("https://spak.studio", '_blank').focus();
                 }
 
                 // else if (tableObject && this.canInteractWithNPC(player, tableObject)) {
@@ -692,7 +708,7 @@ canvas {
     
             this.load.image('food', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/brands/brain.png');
             this.load.image('spakLogo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/snake/exclamation.png'); // Full SPAK logo
-            this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/assets/snake/exclamation.png');   // Exclamation mark
+            this.load.image('logo', 'https://raw.githubusercontent.com/adnanaga/spak-pokemon/refs/heads/main/snake/exclamation.png');   // Exclamation mark
         }
     
         create() {
@@ -923,8 +939,36 @@ canvas {
     
                 move: function (time)
                 {
-                    const GRID_WIDTH = 35;  // New width for the grid
-                    const GRID_HEIGHT = 31; // New height for the grid
+                    let GRID_WIDTH = 35;  // New width for the grid
+                    let GRID_HEIGHT = 31; // New height for the grid
+
+                    if (isMobile){
+                        if (this.headPosition.x <= 1 || this.headPosition.x >= GRID_WIDTH-1 || this.headPosition.y <= 7 || this.headPosition.y >= GRID_HEIGHT-1) {
+                            // console.log('dead: out of bounds');
+                            this.alive = false;
+                    
+                                    // Manually clear the body group
+                            this.body.clear(true, true); // Clear all children and destroy them
+                    
+                            
+                                    // Destroy the head if it's not part of the body group
+                                    if (this.head) {
+                                        this.head.destroy();  // Destroy the head object
+                                    }
+                    
+                                    // console.log(this.body.getChildren()); // Check the body parts in the group
+                    
+                            // If you have a food object, destroy it here as well
+                            if (this.food) {
+                                this.food.destroy();  // Destroy the food object
+                            }
+                    
+                            // Optionally reset the score or any other game state (you can clear score text if needed)
+                            this.scoreText.setText("GAME OVER"); // Example: Updating score text on game over
+                    
+                            return false; // Stop the movement, end the game or trigger reset
+                        }
+                    }
     
                         // Check for collisions with the grid boundary (ensures snake dies if out of bounds)
         if (this.headPosition.x <= 1 || this.headPosition.x >= GRID_WIDTH-1 || this.headPosition.y <= 5 || this.headPosition.y >= GRID_HEIGHT-1) {
